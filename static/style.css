@@ -107,3 +107,46 @@ button:hover {
     background-color: #5a6268;
     /* Cinza mais escuro quando passa o mouse */
 }
+
+/* Estilo para o botão de Excluir */
+.btn-excluir {
+    background-color: #dc3545;
+    /* Vermelho */
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    margin-top: 0;
+    /* Tira a margem do botão padrão */
+    width: auto;
+    /* Deixa o botão no tamanho do texto */
+}
+
+.btn-excluir:hover {
+    background-color: #c82333;
+    /* Vermelho mais escuro no hover */
+}
+
+/* Estilo para o botão de Editar */
+.btn-editar {
+    background-color: #256dbe;
+    /* Amarelo */
+    color: #212529;
+    /* Texto escuro para dar contraste */
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-block;
+    /* Para se comportar como botão */
+    transition: background-color 0.3s;
+}
+
+.btn-editar:hover {
+    background-color: #5392b9;
+    /* Amarelo mais escuro no hover */
+}

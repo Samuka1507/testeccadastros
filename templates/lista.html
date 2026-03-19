@@ -35,9 +35,19 @@
 </head>
 
 <body>
-    <div class="container" style="max-width: 600px;">
+    <div class="container" style="max-width: 700px;">
         <a href="/" class="btn-voltar">← Voltar para o Cadastro</a>
         <h2>Clientes Cadastrados</h2>
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul class="mensagens">
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
 
         <table>
             <thead>
@@ -46,19 +56,31 @@
                     <th>Nome</th>
                     <th>E-mail</th>
                     <th>Telefone</th>
+                    <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
                 {% for cliente in clientes %}
                 <tr>
-                    <td>{{ cliente['id'] }}</td>
+                    <td>{{ loop.index }}</td>
                     <td>{{ cliente['nome'] }}</td>
                     <td>{{ cliente['email'] }}</td>
                     <td>{{ cliente['telefone'] }}</td>
+                    <td>
+                        <div style="display: flex; gap: 5px;">
+                            <a href="{{ url_for('editar', id=cliente['id']) }}" class="btn-editar">Editar</a>
+
+                            <form action="{{ url_for('excluir', id=cliente['id']) }}" method="POST"
+                                onsubmit="return confirm('Tem certeza que deseja excluir este cliente?');"
+                                style="margin: 0;">
+                                <button type="submit" class="btn-excluir">Excluir</button>
+                            </form>
+                        </div>
+                    </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="4" style="text-align: center;">Nenhum cliente cadastrado ainda.</td>
+                    <td colspan="5" style="text-align: center;">Nenhum cliente cadastrado ainda.</td>
                 </tr>
                 {% endfor %}
             </tbody>

@@ -57,6 +57,51 @@ def lista():
     return render_template('lista.html', clientes=clientes)
 # ---------------------------------
 
+# --- NOVA ROTA DE EXCLUSÃO ADICIONADA AQUI ---
+@app.route('/excluir/<int:id>', methods=['POST'])
+def excluir(id):
+    conn = get_db_connection()
+    # Deleta o cliente onde o ID for igual ao que foi clicado
+    conn.execute('DELETE FROM clientes WHERE id = ?', (id,))
+    conn.commit()
+    conn.close()
+    
+    # Redireciona de volta para a lista atualizada
+    return redirect(url_for('lista'))
+# ---------------------------------------------
+
+# --- NOVA ROTA DE EDIÇÃO ADICIONADA AQUI ---
+@app.route('/editar/<int:id>', methods=('GET', 'POST'))
+def editar(id):
+    conn = get_db_connection()
+    # Busca o cliente específico pelo ID
+    cliente = conn.execute('SELECT * FROM clientes WHERE id = ?', (id,)).fetchone()
+
+    # Se o usuário clicou no botão "Salvar Alterações" do formulário
+    if request.method == 'POST':
+        nome = request.form['nome']
+        email = request.form['email']
+        telefone = request.form['telefone']
+
+        if not nome or not email:
+            flash('Nome e Email são campos obrigatórios!')
+        else:
+            # Atualiza os dados no banco
+            conn.execute('''
+                UPDATE clientes 
+                SET nome = ?, email = ?, telefone = ? 
+                WHERE id = ?
+            ''', (nome, email, telefone, id))
+            conn.commit()
+            conn.close()
+            flash('Cliente atualizado com sucesso!')
+            return redirect(url_for('lista')) # Volta para a lista
+
+    conn.close()
+    # Se ele só está abrindo a página, mostra o formulário preenchido
+    return render_template('editar.html', cliente=cliente)
+# ------------------------------------------
+
 if __name__ == '__main__':
     init_db() # Cria o banco de dados e a tabela ao iniciar
     app.run(debug=True)
