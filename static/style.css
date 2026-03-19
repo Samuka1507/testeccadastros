@@ -150,3 +150,50 @@ button:hover {
     background-color: #5392b9;
     /* Amarelo mais escuro no hover */
 }
+
+/* --- Estilos da Barra de Busca --- */
+.form-busca {
+    display: flex;
+    /* Coloca os itens lado a lado */
+    gap: 10px;
+    /* Espaço entre os itens */
+    margin-bottom: 20px;
+}
+
+.form-busca input[type="text"] {
+    flex: 1;
+    /* Faz a barra de texto crescer para ocupar o espaço livre */
+    margin-bottom: 0;
+    /* Tira a margem de baixo para alinhar com o botão */
+}
+
+.btn-buscar {
+    width: auto;
+    margin-top: 0;
+    background-color: #28a745;
+    /* Verde */
+    padding: 10px 15px;
+}
+
+.btn-buscar:hover {
+    background-color: #218838;
+}
+
+.btn-limpar {
+    padding: 10px 15px;
+    background-color: #6c757d;
+    /* Cinza */
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    /* Centraliza o texto no botão */
+    transition: background-color 0.3s;
+}
+
+.btn-limpar:hover {
+    background-color: #5a6268;
+}

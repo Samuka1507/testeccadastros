@@ -44,18 +44,29 @@ def index():
 
     return render_template('index.html')
 
-# --- NOVA ROTA ADICIONADA AQUI ---
+# --- ROTA DE LISTA ATUALIZADA COM BUSCA ---
 @app.route('/lista')
 def lista():
-    # Conecta no banco de dados
     conn = get_db_connection()
-    # Puxa todos os clientes cadastrados
-    clientes = conn.execute('SELECT * FROM clientes').fetchall()
+    
+    # Pega o que o usuário digitou na barra de pesquisa (se houver)
+    busca = request.args.get('busca')
+    
+    if busca:
+        # O '%busca%' faz o banco de dados procurar a palavra em qualquer parte do nome ou email
+        clientes = conn.execute(
+            'SELECT * FROM clientes WHERE nome LIKE ? OR email LIKE ?', 
+            (f'%{busca}%', f'%{busca}%')
+        ).fetchall()
+    else:
+        # Se não tem busca, puxa todos os clientes
+        clientes = conn.execute('SELECT * FROM clientes').fetchall()
+        
     conn.close()
     
-    # Envia os dados para a página lista.html
-    return render_template('lista.html', clientes=clientes)
-# ---------------------------------
+    # Envia os dados e também o termo buscado de volta para a tela
+    return render_template('lista.html', clientes=clientes, busca=busca)
+# ------------------------------------------
 
 # --- NOVA ROTA DE EXCLUSÃO ADICIONADA AQUI ---
 @app.route('/excluir/<int:id>', methods=['POST'])

@@ -39,15 +39,15 @@
         <a href="/" class="btn-voltar">← Voltar para o Cadastro</a>
         <h2>Clientes Cadastrados</h2>
 
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        <ul class="mensagens">
-            {% for message in messages %}
-            <li>{{ message }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
-        {% endwith %}
+        <form method="GET" action="{{ url_for('lista') }}" class="form-busca">
+            <input type="text" name="busca" placeholder="Buscar por nome ou e-mail..." value="{{ busca or '' }}">
+            <button type="submit" class="btn-buscar">Pesquisar</button>
+
+            {% if busca %}
+            <a href="{{ url_for('lista') }}" class="btn-limpar">Limpar Busca</a>
+            {% endif %}
+        </form>
+        ```
 
         <table>
             <thead>
