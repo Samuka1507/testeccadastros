@@ -47,7 +47,7 @@
             <a href="{{ url_for('lista') }}" class="btn-limpar">Limpar Busca</a>
             {% endif %}
         </form>
-        ```
+
 
         <table>
             <thead>
@@ -55,6 +55,7 @@
                     <th>ID</th>
                     <th>Nome</th>
                     <th>E-mail</th>
+                    <th>CPF</th>
                     <th>Telefone</th>
                     <th>Ações</th>
                 </tr>
@@ -65,17 +66,17 @@
                     <td>{{ loop.index }}</td>
                     <td>{{ cliente['nome'] }}</td>
                     <td>{{ cliente['email'] }}</td>
+                    <td>{{ cliente['cpf'] }}</td>
                     <td>{{ cliente['telefone'] }}</td>
-                    <td>
-                        <div style="display: flex; gap: 5px;">
-                            <a href="{{ url_for('editar', id=cliente['id']) }}" class="btn-editar">Editar</a>
+                    <div style="display: flex; gap: 5px;">
+                        <a href="{{ url_for('editar', id=cliente['id']) }}" class="btn-editar">Editar</a>
 
-                            <form action="{{ url_for('excluir', id=cliente['id']) }}" method="POST"
-                                onsubmit="return confirm('Tem certeza que deseja excluir este cliente?');"
-                                style="margin: 0;">
-                                <button type="submit" class="btn-excluir">Excluir</button>
-                            </form>
-                        </div>
+                        <form action="{{ url_for('excluir', id=cliente['id']) }}" method="POST"
+                            onsubmit="return confirm('Tem certeza que deseja excluir este cliente?');"
+                            style="margin: 0;">
+                            <button type="submit" class="btn-excluir">Excluir</button>
+                        </form>
+                    </div>
                     </td>
                 </tr>
                 {% else %}

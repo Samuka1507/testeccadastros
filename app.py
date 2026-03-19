@@ -18,31 +18,41 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nome TEXT NOT NULL,
             email TEXT NOT NULL,
-            telefone TEXT
+            telefone TEXT,
+            cpf TEXT  /* <-- NOVO CAMPO AQUI */
         )
     ''')
     conn.commit()
     conn.close()
 
+# --- ROTA DE CADASTRO ATUALIZADA ---
 @app.route('/', methods=('GET', 'POST'))
 def index():
     if request.method == 'POST':
+     # Dentro do if request.method == 'POST':
         nome = request.form['nome']
         email = request.form['email']
         telefone = request.form['telefone']
+        cpf = request.form['cpf'] # <-- PEGA O CPF
 
         if not nome or not email:
-            flash('Nome e Email são campos obrigatórios!')
+            flash('Nome e Email são campos obrigatórios!', 'erro')
         else:
             conn = get_db_connection()
-            conn.execute('INSERT INTO clientes (nome, email, telefone) VALUES (?, ?, ?)',
-                         (nome, email, telefone))
-            conn.commit()
-            conn.close()
-            flash('Cliente cadastrado com sucesso!')
-            return redirect(url_for('index'))
-
-    return render_template('index.html')
+            email_existente = conn.execute('SELECT * FROM clientes WHERE email = ?', (email,)).fetchone()
+            
+            if email_existente:
+                flash('Erro: Este e-mail já está cadastrado!', 'erro')
+                conn.close()
+            else:
+                # <-- ADICIONA O CPF NO INSERT
+                conn.execute('INSERT INTO clientes (nome, email, telefone, cpf) VALUES (?, ?, ?, ?)',
+                             (nome, email, telefone, cpf))
+                conn.commit()
+                conn.close()
+                flash('Cliente cadastrado com sucesso!', 'sucesso')
+                return redirect(url_for('index'))
+# -----------------------------------
 
 # --- ROTA DE LISTA ATUALIZADA COM BUSCA ---
 @app.route('/lista')
@@ -89,23 +99,24 @@ def editar(id):
     cliente = conn.execute('SELECT * FROM clientes WHERE id = ?', (id,)).fetchone()
 
     # Se o usuário clicou no botão "Salvar Alterações" do formulário
-    if request.method == 'POST':
+    # Dentro do if request.method == 'POST' na rota de editar:
         nome = request.form['nome']
         email = request.form['email']
         telefone = request.form['telefone']
+        cpf = request.form['cpf'] # <-- PEGA O CPF
 
         if not nome or not email:
             flash('Nome e Email são campos obrigatórios!')
         else:
-            # Atualiza os dados no banco
+            # <-- ADICIONA O CPF NO UPDATE
             conn.execute('''
                 UPDATE clientes 
-                SET nome = ?, email = ?, telefone = ? 
+                SET nome = ?, email = ?, telefone = ?, cpf = ? 
                 WHERE id = ?
-            ''', (nome, email, telefone, id))
+            ''', (nome, email, telefone, cpf, id))
             conn.commit()
             conn.close()
-            flash('Cliente atualizado com sucesso!')
+            flash('Cliente atualizado com sucesso!', 'sucesso')
             return redirect(url_for('lista')) # Volta para a lista
 
     conn.close()
