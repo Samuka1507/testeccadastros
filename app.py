@@ -29,11 +29,10 @@ def init_db():
 @app.route('/', methods=('GET', 'POST'))
 def index():
     if request.method == 'POST':
-     # Dentro do if request.method == 'POST':
         nome = request.form['nome']
         email = request.form['email']
         telefone = request.form['telefone']
-        cpf = request.form['cpf'] # <-- PEGA O CPF
+        cpf = request.form['cpf']
 
         if not nome or not email:
             flash('Nome e Email são campos obrigatórios!', 'erro')
@@ -45,13 +44,16 @@ def index():
                 flash('Erro: Este e-mail já está cadastrado!', 'erro')
                 conn.close()
             else:
-                # <-- ADICIONA O CPF NO INSERT
                 conn.execute('INSERT INTO clientes (nome, email, telefone, cpf) VALUES (?, ?, ?, ?)',
                              (nome, email, telefone, cpf))
                 conn.commit()
                 conn.close()
                 flash('Cliente cadastrado com sucesso!', 'sucesso')
                 return redirect(url_for('index'))
+    
+    # ESTA LINHA ABAIXO É ESSENCIAL:
+    # Ela garante que, se não for um POST (ou se houver erro), a página inicial carregue.
+    return render_template('index.html')
 # -----------------------------------
 
 # --- ROTA DE LISTA ATUALIZADA COM BUSCA ---
@@ -92,23 +94,23 @@ def excluir(id):
 # ---------------------------------------------
 
 # --- NOVA ROTA DE EDIÇÃO ADICIONADA AQUI ---
+# --- NOVA ROTA DE EDIÇÃO ADICIONADA AQUI ---
 @app.route('/editar/<int:id>', methods=('GET', 'POST'))
 def editar(id):
     conn = get_db_connection()
     # Busca o cliente específico pelo ID
     cliente = conn.execute('SELECT * FROM clientes WHERE id = ?', (id,)).fetchone()
 
-    # Se o usuário clicou no botão "Salvar Alterações" do formulário
-    # Dentro do if request.method == 'POST' na rota de editar:
+    # VOCÊ PRECISA DESTA LINHA ABAIXO:
+    if request.method == 'POST':
         nome = request.form['nome']
         email = request.form['email']
         telefone = request.form['telefone']
-        cpf = request.form['cpf'] # <-- PEGA O CPF
+        cpf = request.form['cpf'] 
 
         if not nome or not email:
             flash('Nome e Email são campos obrigatórios!')
         else:
-            # <-- ADICIONA O CPF NO UPDATE
             conn.execute('''
                 UPDATE clientes 
                 SET nome = ?, email = ?, telefone = ?, cpf = ? 
@@ -117,12 +119,11 @@ def editar(id):
             conn.commit()
             conn.close()
             flash('Cliente atualizado com sucesso!', 'sucesso')
-            return redirect(url_for('lista')) # Volta para a lista
+            return redirect(url_for('lista')) 
 
+    # Se não for POST, apenas fecha a conexão e renderiza a página
     conn.close()
-    # Se ele só está abrindo a página, mostra o formulário preenchido
     return render_template('editar.html', cliente=cliente)
-# ------------------------------------------
 
 if __name__ == '__main__':
     init_db() # Cria o banco de dados e a tabela ao iniciar
