@@ -3,7 +3,6 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 import sqlite3
 
 app = Flask(__name__)
-# Chave secreta necessária para usar as mensagens (flash messages)
 app.secret_key = "chave_super_secreta" 
 
 def get_db_connection():
@@ -19,15 +18,83 @@ def init_db():
             nome TEXT NOT NULL,
             email TEXT NOT NULL,
             telefone TEXT,
-            cpf TEXT  /* <-- NOVO CAMPO AQUI */
+            cpf TEXT,
+            senha TEXT NOT NULL /* NOVO CAMPO DE SENHA */
         )
     ''')
     conn.commit()
     conn.close()
 
-# --- ROTA DE CADASTRO ATUALIZADA ---
 @app.route('/', methods=('GET', 'POST'))
 def index():
+    if request.method == 'POST':
+        # Descobre de qual formulário veio o clique (Cadastro ou Login)
+        acao = request.form.get('acao')
+
+        if acao == 'cadastrar':
+            nome = request.form['nome']
+            email = request.form['email']
+            cpf = request.form['cpf']
+            telefone = request.form['telefone']
+            senha = request.form['senha']
+
+            if not nome or not email or not senha:
+                flash('Nome, E-mail e Senha são obrigatórios!', 'erro')
+            else:
+                conn = get_db_connection()
+                email_existente = conn.execute('SELECT * FROM clientes WHERE email = ?', (email,)).fetchone()
+                
+                if email_existente:
+                    flash('Erro: Este e-mail já está cadastrado!', 'erro')
+                else:
+                    conn.execute('INSERT INTO clientes (nome, email, telefone, cpf, senha) VALUES (?, ?, ?, ?, ?)',
+                                 (nome, email, telefone, cpf, senha))
+                    conn.commit()
+                    flash('Cadastro realizado com sucesso! Faça o login ao lado.', 'sucesso')
+                conn.close()
+                return redirect(url_for('index'))
+
+        elif acao == 'login':
+            email_login = request.form['email_login']
+            senha_login = request.form['senha_login']
+
+            conn = get_db_connection()
+            # Busca se existe alguém com esse e-mail E essa senha
+            usuario = conn.execute('SELECT * FROM clientes WHERE email = ? AND senha = ?', (email_login, senha_login)).fetchone()
+            conn.close()
+
+            if usuario:
+                # Se achou, manda a mensagem de boas-vindas e vai pra lista!
+                flash(f'Bem-vindo(a), {usuario["nome"]}!', 'sucesso')
+                return redirect(url_for('lista'))
+            else:
+                # Se não achou, dá erro e fica na página inicial
+                flash('E-mail ou senha incorretos!', 'erro')
+                return redirect(url_for('index'))
+
+    return render_template('index.html')
+
+@app.route('/lista')
+def lista():
+    conn = get_db_connection()
+    busca = request.args.get('busca')
+    
+    if busca:
+        clientes = conn.execute(
+            'SELECT * FROM clientes WHERE nome LIKE ? OR email LIKE ?', 
+            (f'%{busca}%', f'%{busca}%')
+        ).fetchall()
+    else:
+        clientes = conn.execute('SELECT * FROM clientes').fetchall()
+        
+    conn.close()
+    return render_template('lista.html', clientes=clientes, busca=busca)
+
+@app.route('/editar/<int:id>', methods=('GET', 'POST'))
+def editar(id):
+    conn = get_db_connection()
+    cliente = conn.execute('SELECT * FROM clientes WHERE id = ?', (id,)).fetchone()
+
     if request.method == 'POST':
         nome = request.form['nome']
         email = request.form['email']
@@ -37,80 +104,6 @@ def index():
         if not nome or not email:
             flash('Nome e Email são campos obrigatórios!', 'erro')
         else:
-            conn = get_db_connection()
-            email_existente = conn.execute('SELECT * FROM clientes WHERE email = ?', (email,)).fetchone()
-            
-            if email_existente:
-                flash('Erro: Este e-mail já está cadastrado!', 'erro')
-                conn.close()
-            else:
-                conn.execute('INSERT INTO clientes (nome, email, telefone, cpf) VALUES (?, ?, ?, ?)',
-                             (nome, email, telefone, cpf))
-                conn.commit()
-                conn.close()
-                flash('Cliente cadastrado com sucesso!', 'sucesso')
-                return redirect(url_for('index'))
-    
-    # ESTA LINHA ABAIXO É ESSENCIAL:
-    # Ela garante que, se não for um POST (ou se houver erro), a página inicial carregue.
-    return render_template('index.html')
-# -----------------------------------
-
-# --- ROTA DE LISTA ATUALIZADA COM BUSCA ---
-@app.route('/lista')
-def lista():
-    conn = get_db_connection()
-    
-    # Pega o que o usuário digitou na barra de pesquisa (se houver)
-    busca = request.args.get('busca')
-    
-    if busca:
-        # O '%busca%' faz o banco de dados procurar a palavra em qualquer parte do nome ou email
-        clientes = conn.execute(
-            'SELECT * FROM clientes WHERE nome LIKE ? OR email LIKE ?', 
-            (f'%{busca}%', f'%{busca}%')
-        ).fetchall()
-    else:
-        # Se não tem busca, puxa todos os clientes
-        clientes = conn.execute('SELECT * FROM clientes').fetchall()
-        
-    conn.close()
-    
-    # Envia os dados e também o termo buscado de volta para a tela
-    return render_template('lista.html', clientes=clientes, busca=busca)
-# ------------------------------------------
-
-# --- NOVA ROTA DE EXCLUSÃO ADICIONADA AQUI ---
-@app.route('/excluir/<int:id>', methods=['POST'])
-def excluir(id):
-    conn = get_db_connection()
-    # Deleta o cliente onde o ID for igual ao que foi clicado
-    conn.execute('DELETE FROM clientes WHERE id = ?', (id,))
-    conn.commit()
-    conn.close()
-    
-    # Redireciona de volta para a lista atualizada
-    return redirect(url_for('lista'))
-# ---------------------------------------------
-
-# --- NOVA ROTA DE EDIÇÃO ADICIONADA AQUI ---
-# --- NOVA ROTA DE EDIÇÃO ADICIONADA AQUI ---
-@app.route('/editar/<int:id>', methods=('GET', 'POST'))
-def editar(id):
-    conn = get_db_connection()
-    # Busca o cliente específico pelo ID
-    cliente = conn.execute('SELECT * FROM clientes WHERE id = ?', (id,)).fetchone()
-
-    # VOCÊ PRECISA DESTA LINHA ABAIXO:
-    if request.method == 'POST':
-        nome = request.form['nome']
-        email = request.form['email']
-        telefone = request.form['telefone']
-        cpf = request.form['cpf'] 
-
-        if not nome or not email:
-            flash('Nome e Email são campos obrigatórios!')
-        else:
             conn.execute('''
                 UPDATE clientes 
                 SET nome = ?, email = ?, telefone = ?, cpf = ? 
@@ -119,12 +112,19 @@ def editar(id):
             conn.commit()
             conn.close()
             flash('Cliente atualizado com sucesso!', 'sucesso')
-            return redirect(url_for('lista')) 
+            return redirect(url_for('lista'))
 
-    # Se não for POST, apenas fecha a conexão e renderiza a página
     conn.close()
     return render_template('editar.html', cliente=cliente)
 
+@app.route('/excluir/<int:id>', methods=['POST'])
+def excluir(id):
+    conn = get_db_connection()
+    conn.execute('DELETE FROM clientes WHERE id = ?', (id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('lista'))
+
 if __name__ == '__main__':
-    init_db() # Cria o banco de dados e a tabela ao iniciar
+    init_db()
     app.run(debug=True)

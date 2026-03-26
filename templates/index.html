@@ -4,13 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro de Cliente</title>
+    <title>Sistema de Clientes</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
-    <div class="container">
-        <h2>Novo Cliente</h2>
+    <div class="container" style="max-width: 800px;">
 
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -22,33 +21,57 @@
         {% endif %}
         {% endwith %}
 
-        <form method="POST">
-            <div class="form-group">
-                <label for="nome">Nome Completo:</label>
-                <input type="text" id="nome" name="nome" required placeholder="Ex: João da Silva">
+        <div class="split-tela">
+            <div class="split-lado">
+                <h2>Novo Cadastro</h2>
+                <form method="POST">
+                    <input type="hidden" name="acao" value="cadastrar">
+
+                    <div class="form-group">
+                        <label>Nome Completo:</label>
+                        <input type="text" name="nome" required>
+                    </div>
+                    <div class="form-group">
+                        <label>E-mail:</label>
+                        <input type="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>CPF:</label>
+                        <input type="text" name="cpf">
+                    </div>
+                    <div class="form-group">
+                        <label>Telefone:</label>
+                        <input type="text" name="telefone">
+                    </div>
+                    <div class="form-group">
+                        <label>Criar Senha:</label>
+                        <input type="password" name="senha" required>
+                    </div>
+                    <button type="submit">Cadastrar</button>
+                </form>
             </div>
 
-            <div class="form-group">
-                <label for="email">E-mail:</label>
-                <input type="email" id="email" name="email" required placeholder="joao@email.com">
+            <div class="linha-divisoria"></div>
+
+            <div class="split-lado">
+                <h2>Já tenho conta</h2>
+                <form method="POST">
+                    <input type="hidden" name="acao" value="login">
+
+                    <div class="form-group">
+                        <label>E-mail cadastrado:</label>
+                        <input type="email" name="email_login" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Senha:</label>
+                        <input type="password" name="senha_login" required>
+                    </div>
+                    <button type="submit" class="btn-buscar" style="width: 100%; margin-top: 15px;">Entrar no
+                        Sistema</button>
+                </form>
             </div>
-
-            <div class="form-group">
-                <label for="cpf">CPF:</label>
-                <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00">
-            </div>
-
-            <div class="form-group">
-                <label for="telefone">Telefone:</label>
-                <input type="text" id="telefone" name="telefone" placeholder="(00) 00000-0000">
-            </div>
-
-            <button type="submit">Cadastrar</button>
-        </form>
-
-        <div style="text-align: center; margin-top: 15px;">
-            <a href="/lista" class="btn-secundario">Ver Clientes Cadastrados</a>
         </div>
+
     </div>
 </body>
 
